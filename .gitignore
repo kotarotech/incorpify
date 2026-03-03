@@ -1,0 +1,16 @@
+# Ignore everything by default
+*
+
+# Allow specs folder
+!specs/
+!specs/**
+
+# Allow speckit config (constitution, templates)
+!.specify/
+!.specify/**
+
+# Allow gitignore itself
+!.gitignore
+
+# OS files
+.DS_Store
