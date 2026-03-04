@@ -108,16 +108,10 @@ Get ingestion job status and progress.
     "totalDocuments": 109,
     "processedDocuments": 45,
     "failedDocuments": 2,
+    "skippedDocuments": 12,
     "totalChunksCreated": 487,
     "startedAt": "2026-03-03T14:30:00Z",
-    "completedAt": null,
-    "errorLog": [
-      {
-        "documentId": "uae_data-protection_4.2",
-        "error": "Unable to parse DOCX (corrupt ZIP header)",
-        "timestamp": "2026-03-03T14:31:12Z"
-      }
-    ]
+    "completedAt": null
   },
   "error": null
 }

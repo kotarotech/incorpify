@@ -93,8 +93,8 @@ backend-agents-service/
 │           ├── infrastructure/
 │           │   ├── database/
 │           │   │   └── schema/
-│           │   │       ├── kb-indexed-documents.ts   # NEW table
-│           │   │       ├── kb-ingestion-jobs.ts       # NEW table
+│           │   │       ├── knowledge-documents.ts     # NEW table
+│           │   │       ├── knowledge-document-jobs.ts # NEW table
 │           │   │       └── index.ts                   # MODIFY: add exports
 │           │   └── qdrant/
 │           │       ├── connection.ts                  # MODIFY: add document_id index
@@ -105,16 +105,16 @@ backend-agents-service/
 │           │       ├── schema/
 │           │       │   └── index.ts                   # MODIFY: add type exports
 │           │       └── repositories/
-│           │           ├── kb-indexed-document.ts     # NEW repository types
-│           │           └── kb-ingestion-job.ts        # NEW repository types
+│           │           ├── knowledge-document.ts      # NEW repository types
+│           │           └── knowledge-document-job.ts  # NEW repository types
 │           └── validations/
 │               └── config/
 │                   └── database.ts                    # MODIFY: default 3072
 ├── migrations/
 │   └── drizzle/
-│       ├── 0041_kb_indexed_documents.sql              # NEW migration
-│       └── 0042_kb_ingestion_jobs.sql                 # NEW migration
-└── knowledge-base/                                     # Source documents (gitignored)
+│       ├── 0041_knowledge_documents.sql               # NEW migration
+│       └── 0042_knowledge_document_jobs.sql           # NEW migration
+└── .kb_data/                                           # Source documents (gitignored, dotfile)
     ├── UAE/
     │   ├── 1-Business Setup/
     │   ├── 2-Tax Compliance/

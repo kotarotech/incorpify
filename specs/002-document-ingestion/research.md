@@ -137,8 +137,8 @@
 - The existing `company_documents` table tracks client-uploaded files (with KYC, versioning, storage metadata) but not knowledge base ingestion state.
 - Ingestion tracking needs persistence across service restarts for: job history, error logs, document versions, chunk counts.
 - Two new tables:
-  - `kb_ingestion_jobs` — tracks batch processing runs (status, progress, errors)
-  - `kb_indexed_documents` — tracks what's currently in Qdrant (document_id, chunk_count, version, last_indexed_at, metadata)
+  - `knowledge_document_jobs` — tracks batch processing runs (status, progress, skipped)
+  - `knowledge_documents` — tracks what's currently in Qdrant (document_id, chunk_count, version, last_indexed_at, metadata, file storage fields)
 - Aligns with Principle I (shared PostgreSQL for structured data, Qdrant for vectors only).
 
 **Alternatives Considered**:

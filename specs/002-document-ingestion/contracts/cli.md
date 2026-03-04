@@ -18,7 +18,7 @@ bun run ingest -- <command> [options]
 Ingest a single document file.
 
 ```
-bun run ingest -- file ./knowledge-base/UAE/1-Business\ Setup/1.3_UAE_CompanyTypes.docx
+bun run ingest -- file ./.kb_data/UAE/1-Business\ Setup/1.3_UAE_CompanyTypes.docx
 ```
 
 **Input**: Absolute or relative path to a .docx or .pdf file.
@@ -42,12 +42,12 @@ Done. Document indexed as uae_business-setup_1.3_companyTypes (v1, 12 chunks)
 Ingest all documents in a directory (recursive).
 
 ```
-bun run ingest -- dir ./knowledge-base/UAE/
+bun run ingest -- dir ./.kb_data/UAE/
 ```
 
 **Output**:
 ```
-Scanning: ./knowledge-base/UAE/
+Scanning: ./.kb_data/UAE/
   Found: 54 documents (.docx: 53, .pdf: 1)
 
 Processing [1/54] 1.3_UAE_CompanyTypes.docx... OK (12 chunks)
@@ -130,7 +130,7 @@ bun run ingest -- remove uae_business-setup_1.3_companyTypes
 ```
 Removing: uae_business-setup_1.3_companyTypes
   Deleted: 12 chunks from knowledge_base collection
-  Updated: kb_indexed_documents status → REMOVED
+  Updated: knowledge_documents status → REMOVED
 
 Done. Document removed from index.
 ```
@@ -155,4 +155,4 @@ Done. Document removed from index.
 | `QDRANT_COLLECTION_NAME` | No | `knowledge_base` | Target collection |
 | `VECTOR_DIMENSION` | No | `3072` | Embedding vector dimension |
 | `OPENAI_API_KEY` | Yes | — | For text-embedding-3-large |
-| `KB_SOURCE_DIR` | No | `./knowledge-base` | Knowledge base root directory |
+| `KB_SOURCE_DIR` | No | `./.kb_data` | Knowledge base root directory |

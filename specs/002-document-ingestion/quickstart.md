@@ -40,7 +40,7 @@ QDRANT_URL=http://localhost:6333
 QDRANT_COLLECTION_NAME=knowledge_base
 VECTOR_DIMENSION=3072
 OPENAI_API_KEY=sk-...
-KB_SOURCE_DIR=./knowledge-base
+KB_SOURCE_DIR=./.kb_data
 ```
 
 ### 3. Run database migrations
@@ -49,7 +49,7 @@ KB_SOURCE_DIR=./knowledge-base
 bun run migrate
 ```
 
-This applies all Drizzle migrations including the new `kb_indexed_documents` and `kb_ingestion_jobs` tables.
+This applies all Drizzle migrations including the new `knowledge_documents` and `knowledge_document_jobs` tables.
 
 ### 4. Restore existing Qdrant data (optional)
 
@@ -66,13 +66,13 @@ This merges kb_1 (771 points) and kb_3 (27 points) into the unified `knowledge_b
 Extract the knowledge base zip to the configured source directory:
 
 ```bash
-mkdir -p ./knowledge-base
-unzip ~/Downloads/Knowledge\ Base.zip -d ./knowledge-base/
+mkdir -p ./.kb_data
+unzip ~/Downloads/Knowledge\ Base.zip -d ./.kb_data/
 ```
 
 Expected structure:
 ```
-knowledge-base/
+.kb_data/
 ├── UAE/
 │   ├── 1-Business Setup/
 │   ├── 2-Tax Compliance/
@@ -96,13 +96,13 @@ bun run ingest -- all
 ### Ingest a single document
 
 ```bash
-bun run ingest -- file ./knowledge-base/UAE/1-Business\ Setup/1.3_UAE_CompanyTypes.docx
+bun run ingest -- file ./.kb_data/UAE/1-Business\ Setup/1.3_UAE_CompanyTypes.docx
 ```
 
 ### Ingest a country directory
 
 ```bash
-bun run ingest -- dir ./knowledge-base/KSA/
+bun run ingest -- dir ./.kb_data/KSA/
 ```
 
 ### Check index status
@@ -175,5 +175,5 @@ CLI (ingest.ts)
     → TextChunker (gpt-tokenizer + recursive splitter)
       → EmbeddingService (Vercel AI SDK → text-embedding-3-large)
         → QdrantUpserter (existing upsertSemanticDocuments)
-          → IngestionTracker (PostgreSQL: kb_indexed_documents + kb_ingestion_jobs)
+          → IngestionTracker (PostgreSQL: knowledge_documents + knowledge_document_jobs)
 ```

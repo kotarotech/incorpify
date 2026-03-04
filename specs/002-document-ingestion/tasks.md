@@ -30,10 +30,10 @@ All paths relative to `backend-agents-service/`:
 - [ ] T001 Install new dependencies: `officeparser`, `unpdf`, `gpt-tokenizer` in `packages/agents-service/package.json`
 - [ ] T002 Update VECTOR_DIMENSION default from 1536 to 3072 in `packages/shared/src/constants/database/config.ts` (line 19) and `packages/shared/src/validations/config/database.ts` (default value)
 - [ ] T003 [P] Add `KB_SOURCE_DIR` and `OPENAI_API_KEY` to environment config validation schema in `packages/shared/src/validations/config/database.ts` and export through `packages/shared/src/config/index.ts`
-- [ ] T004 [P] Create Drizzle schema for `kb_indexed_documents` table in `packages/shared/src/infrastructure/database/schema/kb-indexed-documents.ts` per data-model.md (20 fields, indexes on document_id unique, status, category, country_code, jurisdiction_code)
-- [ ] T005 [P] Create Drizzle schema for `kb_ingestion_jobs` table in `packages/shared/src/infrastructure/database/schema/kb-ingestion-jobs.ts` per data-model.md (11 fields, indexes on status, job_type, created_at)
+- [ ] T004 [P] Create Drizzle schema for `knowledge_documents` table in `packages/shared/src/infrastructure/database/schema/knowledge-documents.ts` per data-model.md (25 fields incl. file storage fields and knowledge_document_job_id FK, indexes on document_id unique, knowledge_document_job_id, status, category, country_code, jurisdiction_code)
+- [ ] T005 [P] Create Drizzle schema for `knowledge_document_jobs` table in `packages/shared/src/infrastructure/database/schema/knowledge-document-jobs.ts` per data-model.md (11 fields incl. skipped_documents, no error_log, indexes on status, job_type, created_at)
 - [ ] T006 Export new schemas from `packages/shared/src/infrastructure/database/schema/index.ts` and add type re-exports to `packages/shared/src/types/database/schema/index.ts`
-- [ ] T007 Generate and apply Drizzle migrations for `kb_indexed_documents` (0041) and `kb_ingestion_jobs` (0042) in `migrations/drizzle/`
+- [ ] T007 Generate and apply Drizzle migrations for `knowledge_document_jobs` (0041, created first since it's referenced by FK) and `knowledge_documents` (0042, has FK to knowledge_document_jobs) in `migrations/drizzle/`
 - [ ] T008 Add `document_id` keyword payload index to the `PAYLOAD_INDEXES` array in `packages/shared/src/types/database/qdrant/infrastructure.ts` for efficient chunk deletion during re-ingestion
 - [ ] T009 Update `restore-qdrant.ts` script in `scripts/remote-restore-qdrant.ts` to merge kb_1 and kb_3 backup collections into the single `knowledge_base` collection (load both point sets, deduplicate by ID, upsert to unified collection)
 
@@ -96,15 +96,15 @@ All paths relative to `backend-agents-service/`:
 
 ### Tests (write FIRST, must FAIL)
 
-- [ ] T024 [P] [US2] Write unit tests for ingestion tracker in `packages/agents-service/src/services/ingestion/ingestionTracker.test.ts` — test job creation (SINGLE/BATCH/FULL_CORPUS), status transitions (PENDING→PROCESSING→COMPLETED), document registration and status updates, error logging, progress tracking (processed/failed counts). Mock PostgreSQL queries.
+- [ ] T024 [P] [US2] Write unit tests for ingestion tracker in `packages/agents-service/src/services/ingestion/ingestionTracker.test.ts` — test job creation (SINGLE/BATCH/FULL_CORPUS), status transitions (PENDING→PROCESSING→COMPLETED), document registration and status updates, progress tracking (processed/failed/skipped counts), embedding cost recording via conversation_costs. Mock PostgreSQL queries.
 - [ ] T025 [P] [US2] Write unit tests for ingestion pipeline orchestrator in `packages/agents-service/src/services/ingestion/ingestionPipeline.test.ts` — test single document flow (parse→chunk→embed→upsert→track), batch processing with mixed success/failure (FR-015), version-aware re-ingestion replacing old chunks (FR-008), incremental updates without re-processing existing (FR-007), file hash change detection
-- [ ] T026 [P] [US2] Write integration test for full pipeline in `packages/agents-service/src/services/ingestion/ingestionPipeline.integration.test.ts` — test ingesting a real .docx test fixture, verifying chunks appear in disposable Qdrant collection with correct metadata, verifying kb_indexed_documents row is created in test database
+- [ ] T026 [P] [US2] Write integration test for full pipeline in `packages/agents-service/src/services/ingestion/ingestionPipeline.integration.test.ts` — test ingesting a real .docx test fixture, verifying chunks appear in disposable Qdrant collection with correct metadata, verifying knowledge_documents row is created in test database
 
 ### Implementation
 
-- [ ] T027 [US2] Create repository types for KbIndexedDocument in `packages/shared/src/types/database/repositories/kb-indexed-document.ts` — interfaces for `IKbIndexedDocumentRepository` with methods: create, getByDocumentId, update, delete, findByStatus, findByCategory, countByStatus, list with pagination
-- [ ] T028 [US2] Create repository types for KbIngestionJob in `packages/shared/src/types/database/repositories/kb-ingestion-job.ts` — interfaces for `IKbIngestionJobRepository` with methods: create, getById, updateStatus, updateProgress, addErrorLog, getLatest, list with pagination
-- [ ] T029 [US2] Implement ingestion tracker in `packages/agents-service/src/services/ingestion/ingestionTracker.ts` — manages job lifecycle and document status in PostgreSQL. Methods: `createJob()`, `startJob()`, `completeJob()`, `failJob()`, `registerDocument()`, `updateDocumentStatus()`, `logError()`, `getProgress()`. Uses Drizzle ORM with bun:sql tagged templates. (FR-010)
+- [ ] T027 [US2] Create repository types for KnowledgeDocument in `packages/shared/src/types/database/repositories/knowledge-document.ts` — interfaces for `IKnowledgeDocumentRepository` with methods: create, getByDocumentId, update, delete, findByStatus, findByCategory, findByJobId, countByStatus, list with pagination
+- [ ] T028 [US2] Create repository types for KnowledgeDocumentJob in `packages/shared/src/types/database/repositories/knowledge-document-job.ts` — interfaces for `IKnowledgeDocumentJobRepository` with methods: create, getById, updateStatus, updateProgress (processed/failed/skipped counts), getLatest, list with pagination
+- [ ] T029 [US2] Implement ingestion tracker in `packages/agents-service/src/services/ingestion/ingestionTracker.ts` — manages job lifecycle and document status in PostgreSQL. Methods: `createJob()`, `startJob()`, `completeJob()`, `failJob()`, `registerDocument()`, `updateDocumentStatus()`, `skipDocument()`, `recordEmbeddingCost()`, `getProgress()`. Track skipped documents (unchanged hash). Record embedding costs to conversation_costs table with call_type='EMBEDDING'. Uses Drizzle ORM with bun:sql tagged templates. (FR-010)
 - [ ] T030 [US2] Implement ingestion pipeline orchestrator in `packages/agents-service/src/services/ingestion/ingestionPipeline.ts` — `ingestDocument(filePath: string, jobId: string): Promise<IngestResult>` and `ingestBatch(filePaths: string[], jobType: string): Promise<BatchResult>`. Orchestrates: parse → chunk → derive metadata → embed → upsert to Qdrant → track in PostgreSQL. Handles: file hash comparison for change detection (FR-007), deletion of old chunks before re-upsert (FR-008), graceful failure per document (FR-015). Uses structured logging with documentId, chunkCount, duration context.
 - [ ] T031 [US2] Implement CLI entry point in `packages/agents-service/scripts/ingest.ts` per contracts/cli.md — parse CLI args for subcommands: `file <path>`, `dir <path>`, `all`. Register `status` and `remove` as recognized commands but output "Not yet implemented — see Phase 5 (US3)" stubs. Wire ingestion subcommands to ingestionPipeline and ingestionTracker. Add `--verbose`, `--dry-run`, `--force`, `--clean`, `--source-dir` flags. Add `"ingest"` script to `packages/agents-service/package.json`. (FR-009)
 - [ ] T032 [US2] Implement file discovery for batch/directory ingestion in `packages/agents-service/scripts/ingest.ts` — recursive directory scan for .docx and .pdf files, sorted by path. Used by `dir` and `all` commands. Filter out hidden files (dotfiles). Skip `Copy of` prefixed files by default but include them with `--include-copies` flag (duplicate handling strategy is deferred — see spec.md Clarifications).
@@ -126,8 +126,8 @@ All paths relative to `backend-agents-service/`:
 
 ### Implementation
 
-- [ ] T035 [US3] Implement `status` CLI command in `packages/agents-service/scripts/ingest.ts` — query kb_indexed_documents and kb_ingestion_jobs tables, format output per contracts/cli.md status section. Include document counts by jurisdiction and category, recent jobs, last indexed timestamp. (FR-011)
-- [ ] T036 [US3] Implement `remove` CLI command in `packages/agents-service/scripts/ingest.ts` — look up document by document_id, delete all associated chunks from Qdrant via `deleteSemanticDocuments()`, update kb_indexed_documents status to REMOVED. (FR-012)
+- [ ] T035 [US3] Implement `status` CLI command in `packages/agents-service/scripts/ingest.ts` — query knowledge_documents and knowledge_document_jobs tables, format output per contracts/cli.md status section. Include document counts by jurisdiction and category, recent jobs, last indexed timestamp. (FR-011)
+- [ ] T036 [US3] Implement `remove` CLI command in `packages/agents-service/scripts/ingest.ts` — look up document by document_id, delete all associated chunks from Qdrant via `deleteSemanticDocuments()`, update knowledge_documents status to REMOVED. (FR-012)
 - [ ] T037 [US3] Create Fastify route plugin for admin knowledge base endpoints in `packages/agents-service/src/routes/admin/knowledge-base.ts` — register routes: GET /documents, GET /stats, DELETE /documents/:documentId, POST /ingest, GET /jobs/:jobId. Use Zod schemas for all params, querystring, body, and response per Constitution II. Use standard response envelope `{ success, data, error }`. Handlers MUST verify admin/super-admin role from gateway headers (`X-User-Id` + role check) before executing mutations per Constitution IV. Rate limiting is delegated to API Gateway per Constitution III — document this in a code comment. (FR-011, FR-012)
 - [ ] T038 [US3] Implement Zod validation schemas for admin API in `packages/agents-service/src/validations/admin/knowledge-base.ts` — request/response schemas for all 5 endpoints per contracts/admin-api.md. Use z.uuid(), z.enum() for category/status filters, pagination with limit/offset defaults.
 - [ ] T039 [US3] Register admin routes in the agents service Fastify app — add the knowledge-base route plugin to the main app registration in `packages/agents-service/src/app.ts` or equivalent entry point
@@ -210,8 +210,8 @@ Task: T025 "Write unit tests for ingestionPipeline"
 Task: T026 "Write integration test for full pipeline"
 
 # Then launch type definitions in parallel:
-Task: T027 "Create repository types for KbIndexedDocument"
-Task: T028 "Create repository types for KbIngestionJob"
+Task: T027 "Create repository types for KnowledgeDocument"
+Task: T028 "Create repository types for KnowledgeDocumentJob"
 
 # Then sequential implementation:
 Task: T029 "Implement ingestionTracker" (needs T027, T028)
