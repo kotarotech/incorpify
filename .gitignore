@@ -12,5 +12,14 @@
 # Allow gitignore itself
 !.gitignore
 
+# Allow project-level config
+!CLAUDE.md
+!ONBOARDING.md
+!docker-compose.yml
+!.env.example
+!build.sh
+!db-init/
+!db-init/**
+
 # OS files
 .DS_Store
