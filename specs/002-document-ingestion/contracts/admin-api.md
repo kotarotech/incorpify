@@ -25,6 +25,7 @@ List all indexed documents with metadata.
 | limit | number | 20 | Max 100 |
 | offset | number | 0 | Pagination offset |
 | status | string | — | Filter: PENDING, INDEXED, FAILED, REMOVED |
+| job_id | uuid | — | Filter by ingestion job (useful for viewing failed documents in a specific run) |
 | category | string | — | Filter by RagDocumentCategory |
 | country_code | string | — | Filter: AE, SA |
 | jurisdiction_code | string | — | Filter: UAE_MAINLAND, FREE_ZONE, KSA_MAINLAND |

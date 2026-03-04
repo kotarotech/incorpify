@@ -112,8 +112,8 @@ backend-agents-service/
 │                   └── database.ts                    # MODIFY: default 3072
 ├── migrations/
 │   └── drizzle/
-│       ├── 0041_knowledge_documents.sql               # NEW migration
-│       └── 0042_knowledge_document_jobs.sql           # NEW migration
+│       ├── 0041_knowledge_document_jobs.sql            # NEW migration (created first — referenced by FK)
+│       └── 0042_knowledge_documents.sql               # NEW migration (has FK to knowledge_document_jobs)
 └── .kb_data/                                           # Source documents (gitignored, dotfile)
     ├── UAE/
     │   ├── 1-Business Setup/

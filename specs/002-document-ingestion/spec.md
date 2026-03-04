@@ -53,7 +53,7 @@ An administrator wants to see what's currently in the knowledge base — which d
 
 1. **Given** an administrator, **When** they request a list of indexed documents, **Then** they see document names, chunk counts, last indexed date, version, and jurisdiction for each entry.
 2. **Given** an outdated document in the index, **When** the administrator removes it, **Then** all associated chunks are deleted from the vector database.
-3. **Given** a document that failed during ingestion, **When** the administrator views the ingestion log, **Then** they see the error message and the specific point of failure.
+3. **Given** a document that failed during ingestion, **When** the administrator views failed documents for that job, **Then** they see each document's error message and the specific point of failure.
 
 ---
 
